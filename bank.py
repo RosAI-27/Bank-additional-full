@@ -4,7 +4,7 @@ import pandas as pd
 import gdown
 
 # Download the model file from Google Drive
-file_id = "YOUR_GOOGLE_DRIVE_FILE_ID"  # Replace with your file ID
+file_id = "11lJWYbmvcxdU1gyfDTuw4VT2n_z5qjvV"
 url = f"https://drive.google.com/uc?id={file_id}"
 output = "bank_model.pkl"
 gdown.download(url, output, quiet=False)
