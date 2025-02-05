@@ -1,19 +1,12 @@
 import streamlit as st
 import joblib
 import pandas as pd
-import gdown
 
-# Download the model file from Google Drive
-file_id = "11lJWYbmvcxdU1gyfDTuw4VT2n_z5qjvV"
-url = f"https://drive.google.com/uc?id={file_id}"
-output = "bank_model.pkl"
-gdown.download(url, output, quiet=False)
 
+# Load the trained model and scaler
+scaler = joblib.load('scaler.pkl')
 # Load the model
-model = joblib.load(output)
-
-# Load the scaler (if needed)
-scaler = joblib.load('scaler.pkl')  # Ensure scaler.pkl is in your repo
+model = joblib.load('bank_model.pkl')
 
 # Streamlit app
 st.title("Bank Marketing Campaign Prediction")
