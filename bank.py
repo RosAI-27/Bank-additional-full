@@ -1,75 +1,50 @@
 import streamlit as st
-import joblib
+import numpy as np
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 
-# Load the trained model and scaler
-scaler = joblib.load('scaler.pkl')
-# Load the model
-model = joblib.load('bank_model.pkl')
+df = pd.read_csv('bank.csv')
+st.set_page_config(page_title='Real Time Science Dashboard',
+page_icon='✅',layout="wide")
 
-# Streamlit app
-st.title("Bank Marketing Campaign Prediction")
+#DASHBOARD TITLE
+st.title('Real-Time/ Live Data Analysis Dashboard')
 
-# Input fields for numerical features
-st.sidebar.header("Client Information")
-age = st.sidebar.number_input("Age", min_value=18, max_value=100)
-duration = st.sidebar.number_input("Duration (last contact duration in seconds)", min_value=0)
-campaign = st.sidebar.number_input("Number of contacts during this campaign", min_value=1)
-pdays = st.sidebar.number_input("Days since last contact (999 if not contacted)", min_value=0, max_value=999)
-previous = st.sidebar.number_input("Number of contacts before this campaign", min_value=0)
-emp_var_rate = st.sidebar.number_input("Employment Variation Rate", value=0.0)
-cons_price_idx = st.sidebar.number_input("Consumer Price Index", value=0.0)
-cons_conf_idx = st.sidebar.number_input("Consumer Confidence Index", value=0.0)
-euribor3m = st.sidebar.number_input("Euribor 3 Month Rate", value=0.0)
-nr_employed = st.sidebar.number_input("Number of Employees", value=0.0)
+#Filtre sur le type de job
+job_filter = st.selectbox('Select a job',pd.unique(df['job']))
+#creation Container-element
 
-# Input fields for categorical features
-job = st.sidebar.selectbox("Job", ["admin.", "blue-collar", "entrepreneur", "housemaid", "management", "retired", "self-employed", "services", "student", "technician", "unemployed", "unknown"])
-marital = st.sidebar.selectbox("Marital Status", ["divorced", "married", "single", "unknown"])
-education = st.sidebar.selectbox("Education", ["basic.4y", "basic.6y", "basic.9y", "high.school", "illiterate", "professional.course", "university.degree", "unknown"])
-default = st.sidebar.selectbox("Has Credit in Default?", ["no", "yes", "unknown"])
-housing = st.sidebar.selectbox("Has Housing Loan?", ["no", "yes", "unknown"])
-loan = st.sidebar.selectbox("Has Personal Loan?", ["no", "yes", "unknown"])
-contact = st.sidebar.selectbox("Contact Communication Type", ["cellular", "telephone"])
-month = st.sidebar.selectbox("Last Contact Month", ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"])
-day_of_week = st.sidebar.selectbox("Last Contact Day of the Week", ["mon", "tue", "wed", "thu", "fri"])
-poutcome = st.sidebar.selectbox("Outcome of Previous Marketing Campaign", ["failure", "nonexistent", "success"])
 
-# Predict button
-if st.sidebar.button("Predict Subscription"):
-    # Create a DataFrame with all input features
-    input_data = pd.DataFrame({
-        'age': [age],
-        'duration': [duration],
-        'campaign': [campaign],
-        'pdays': [pdays],
-        'previous': [previous],
-        'emp.var.rate': [emp_var_rate],
-        'cons.price.idx': [cons_price_idx],
-        'cons.conf.idx': [cons_conf_idx],
-        'euribor3m': [euribor3m],
-        'nr.employed': [nr_employed],
-        'job': [job],
-        'marital': [marital],
-        'education': [education],
-        'default': [default],
-        'housing': [housing],
-        'loan': [loan],
-        'contact': [contact],
-        'month': [month],
-        'day_of_week': [day_of_week],
-        'poutcome': [poutcome]
-    })
+df = df[df['job']== job_filter]
 
-    # One-hot encode categorical features (if your model expects encoded data)
-    input_data = pd.get_dummies(input_data, drop_first=True)
+#Creation d indicateur
+avg_age = np.mean(df['age'])
+count_married = int(df[(df['marital'] == 'married')]['marital'].count())
+balance = np.mean(df['balance'])
 
-    # Scale the input data (if your model expects scaled data)
-    input_scaled = scaler.transform(input_data)
 
-    # Make prediction
-    prediction = model.predict(input_scaled)[0]
+kpi1,kpi2,kpi3 = st.columns(3)
 
-    # Show result
-    st.success("Prediction: " + ("Yes" if prediction == 1 else "No"))
+kpi1.metric(label='Age ⏳',value=round(avg_age),delta=round(avg_age))
+kpi2.metric(label = 'Married_count 💍',value = int(count_married),
+delta=round(count_married))
+kpi3.metric(label = 'Balance ＄',value = f"$ {round(balance,2)}",
+delta=-round(balance/count_married)*100)
+
+#Graphiques
+col1,col2 = st.columns(2)
+with col1:
+    st.markdown('### First chart')
+    fig1 = plt.figure()
+    sns.barplot(data=df,y='age',x='marital',palette='muted')
+    st.pyplot(fig1)
+   
+with col2:
+    st.markdown('### Second chart')
+    fig2 = plt.figure()
+    sns.histplot(data=df,x='age')
+    st.pyplot(fig2)
+st.markdown('### Detailed Data View')
+st.dataframe(df)
